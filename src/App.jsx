@@ -239,6 +239,7 @@ function App() {
       const killsDelta = endKills - startKills
       const powerPct = startPower ? (powerDelta / startPower) * 100 : 0
       const killsPct = startKills ? (killsDelta / startKills) * 100 : 0
+      const killMightRatio = powerDelta > 0 ? (killsDelta / powerDelta) : 0
       const renamed = startRow && startRow.player_name !== endRow.player_name
 
       return {
@@ -258,6 +259,7 @@ function App() {
         end_kills: endKills,
         kills_delta: killsDelta,
         kills_pct: killsPct,
+        kill_might_ratio: killMightRatio,
         start_act: startRow?.net_kills_gain ?? 0,
         end_act: endRow.net_kills_gain ?? 0,
       }
@@ -338,7 +340,8 @@ function App() {
       'Power Delta': r.power_delta,
       'Start Kills': r.start_kills,
       'End Kills': r.end_kills,
-      'Kills Delta': r.kills_delta
+      'Kills Delta': r.kills_delta,
+      'Kill/Might Ratio': r.power_delta > 0 ? (r.kills_delta / r.power_delta).toFixed(2) : 0
     }))
     exportToCSV(exportData, 'VikingRise_Comparison')
   }
@@ -474,8 +477,8 @@ function App() {
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); setSearchTerm('') }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${activeTab === tab.id
-                    ? 'btn-primary'
-                    : 'text-slate-400 hover:text-white hover:bg-white/10'
+                  ? 'btn-primary'
+                  : 'text-slate-400 hover:text-white hover:bg-white/10'
                   }`}
               >
                 <div className="relative z-10 flex items-center gap-1.5">{tab.icon}{tab.label}</div>
@@ -688,6 +691,9 @@ function App() {
                             <th className="px-4 py-3 text-right cursor-pointer hover:text-white" onClick={() => handleSort('kills_delta')}>
                               <span className="flex items-center justify-end gap-1 text-amber-400">Kills Δ <SortIcon field="kills_delta" sortBy={sortBy} sortOrder={sortOrder} /></span>
                             </th>
+                            <th className="px-4 py-3 text-right cursor-pointer hover:text-white" onClick={() => handleSort('kill_might_ratio')}>
+                              <span className="flex items-center justify-end gap-1 text-pink-400">Kill/Might Ratio <SortIcon field="kill_might_ratio" sortBy={sortBy} sortOrder={sortOrder} /></span>
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
@@ -711,6 +717,7 @@ function App() {
                               <td className="px-4 py-3 text-right font-mono text-slate-300 tabular-nums">{fmt(row.start_kills)}</td>
                               <td className="px-4 py-3 text-right font-mono text-slate-300 tabular-nums">{fmt(row.end_kills)}</td>
                               <td className="px-4 py-3 text-right"><DeltaCell value={row.kills_delta} pct={row.kills_pct} /></td>
+                              <td className="px-4 py-3 text-right font-mono tabular-nums font-bold text-pink-300">{row.kill_might_ratio > 0 ? row.kill_might_ratio.toFixed(2) : '—'}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -722,6 +729,7 @@ function App() {
                             <td className="px-4 py-3 text-right"><DeltaCell value={filteredComparison.reduce((s, r) => s + r.power_delta, 0)} /></td>
                             <td colSpan={2} />
                             <td className="px-4 py-3 text-right"><DeltaCell value={filteredComparison.reduce((s, r) => s + r.kills_delta, 0)} /></td>
+                            <td className="px-4 py-3 text-right text-slate-400">—</td>
                           </tr>
                         </tfoot>
                       </table>
